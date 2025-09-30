@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Task Manager — Home (SSR)</title>
+  <meta name="description" content="Gestor de tareas con renderizado del servidor">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0b74de">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial,sans-serif;margin:0;padding:16px;background:#f6fbff;color:#1a1a1a}
+    header{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+    header h1{margin:0;font-size:1.5rem;color:#0b74de}
+    nav{display:flex;gap:8px;flex-wrap:wrap}
+    nav a{padding:6px 12px;border-radius:6px;background:#e8f4ff;color:#0b74de;text-decoration:none;font-size:0.9rem;transition:background .2s}
+    nav a:hover{background:#d0e9ff}
+    .card{background:white;padding:16px;border-radius:12px;box-shadow:0 2px 8px rgba(11,116,222,0.08);margin:12px 0}
+    .card h2{margin:0 0 16px;font-size:1.25rem;color:#333}
+    .task{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:12px;border-bottom:1px solid #f0f0f0;transition:background .2s}
+    .task:hover{background:#f9fcff}
+    .task:last-child{border-bottom:none}
+    .task .left{display:flex;align-items:flex-start;gap:12px;flex:1}
+    .task input[type="checkbox"]{margin-top:4px;width:18px;height:18px;cursor:pointer}
+    .task-content{flex:1}
+    .task-title{font-weight:600;color:#1a1a1a;margin-bottom:4px}
+    .task-desc{color:#666;font-size:0.9rem;line-height:1.4}
+    .task-meta{text-align:right;font-size:0.85rem;color:#999;white-space:nowrap}
+    .empty{text-align:center;padding:32px;color:#999}
+    .badge{display:inline-block;padding:4px 8px;background:#0b74de;color:white;border-radius:6px;font-size:0.85rem;font-weight:600}
+    @media(max-width:600px){
+      header{flex-direction:column;align-items:flex-start}
+      .task{flex-direction:column}
+      .task-meta{text-align:left;margin-top:8px}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Task Manager</h1>
+      <nav>
+        <a href="/splash">Splash</a>
+        <a href="/app"> App (CSR)</a>
+      </nav>
+    </div>
+    <div>
+      <span class="badge"><%= tasks.length %> tareas</span>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Tareas desde el servidor</h2>
+    <% if (tasks && tasks.length) { %>
+      <div>
+        <% tasks.forEach(function(task){ %>
+          <article class="task">
+            <div class="left">
+              <input type="checkbox" <%= task.completed ? 'checked' : '' %> disabled aria-label="Estado de tarea">
+              <div class="task-content">
+                <div class="task-title"><%= task.title %></div>
+                <% if (task.description) { %>
+                  <div class="task-desc"><%= task.description %></div>
+                <% } %>
+              </div>
+            </div>
+            <div class="task-meta">
+              <div><%= new Date(task.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) %></div>
+              <div><%= new Date(task.createdAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) %></div>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <div class="empty">
+        <p>No hay tareas en el servidor</p>
+        <p style="font-size:0.9rem;color:#999">Ve a la <a href="/app" style="color:#0b74de">App (CSR)</a> para crear algunas</p>
+      </div>
+    <% } %>
+  </section>
+
+  <script>
+    // Registrar service worker si está disponible
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('[SSR] SW registrado:', reg.scope))
+        .catch(err => console.error('[SSR] Error registrando SW:', err));
+    }
+  </script>
+</body>
+</html>
